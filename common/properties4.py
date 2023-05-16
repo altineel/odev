@@ -13,9 +13,9 @@ FILENAME_DM = "output/dist_mat.pkl"
 # Speed variables
 REGULAR_SPEED = 1
 DYN_VEL_FUEL_CONSUM_CONST = 1.0  # 0.04
-EXPECTED_BUNKERING_COSTS = [5000, 6000, 2000, 5500, 8000, 4500, 3500]
+EXPECTED_BUNKERING_COSTS = [1000,1200,800,1100]
 
-ROUTE_SCHEDULE = [0, 1, 2, 3, 4, 5, 6, 0]  # first value does not matter.
+ROUTE_SCHEDULE = [0, 1, 2, 3, 0]  # first value does not matter.
 
 # Non-Euclidean / Symmetric distance matrix
 # DIST_MAT = np.array([[0, 100, 7, 15],#, 100, 100, 100, 100, 100, 100],
@@ -23,16 +23,11 @@ ROUTE_SCHEDULE = [0, 1, 2, 3, 4, 5, 6, 0]  # first value does not matter.
 #                      [7, 25, 0, 80],#, 100, 100, 100, 100, 100, 100],
 #                      [75, 8, 30, 0]#, 100, 100, 100, 100, 100, 100],
 #                      ])
-DIST_MAT = np.array([[0, 30, 7, 15, 100, 100, 100],#, 100, 100, 100, 100, 100, 100],
-                     [30, 0, 25, 8, 100, 100, 100],#, 100, 100, 100, 100, 100, 100],
-                     [7, 25, 0, 30, 100, 100, 100],#, 100, 100, 100, 100, 100, 100],
-                     [15, 8, 30, 0, 40, 100, 100],#, 100, 100, 100, 100, 100, 100],
-                     [10, 8, 30, 10, 0, 44, 100],
-                     [13, 8, 30, 20, 100, 0, 75],
-                     [20, 8, 30, 20, 100, 0, 100]])
+DIST_MAT = np.array([[0, 30, 7, 15],#, 100, 100, 100, 100, 100, 100],
+                     [30, 0, 25, 8],#, 100, 100, 100, 100, 100, 100],
+                     [7, 25, 0, 30],#, 100, 100, 100, 100, 100, 100],
+                     [15, 8, 30, 0]])
 
-FUEL_CAPACITY = 150
-FIXED_BUNKERING_COSTS = [7000, 5000, 1000, 3500, 2000, 1500, 1000, 7000, 4500, 8000, 1500]
 BIG_S = np.max(DIST_MAT) * DYN_VEL_FUEL_CONSUM_CONST * 6
 SMALL_S = BIG_S * 0.95
 EXP_TRAVEL_TIME = np.array(
@@ -176,46 +171,3 @@ def dist_matrix(start, end):
     return DIST_MAT[start, end]
 
 
-def parser(now, path,run_id):
-    # path = locals()['__file__']
-    # path = path[:path.find('common')]
-    path = path + f'/runs/{now[:10]}/{now}'
-    files = os.listdir(path)
-    configs_jsons = []
-    simulations_jsons = []
-    dataframe = pd.DataFrame()
-    numbers = []
-    for f in files:
-        if f.startswith('config'):
-            number = f.split('_')[1]
-            numbers.append(number.split('.')[0])
-            with open(os.path.join(path, f)) as json_file:
-                configs_jsons.append(json.load(json_file))
-            with open(os.path.join(path, f'simulations_{number}')) as json_file:
-                simulations_jsons.append(json.load(json_file))
-    total_simulations = len(simulations_jsons)
-    different_configs = []
-    for keys in configs_jsons[0]:
-        for configs in configs_jsons:
-            if configs_jsons[0][keys] != configs[keys]:
-                different_configs.append(keys)
-    for t in range(total_simulations):
-        local_dataframe = pd.DataFrame({'Simulation number': numbers[t]}, index=[0])
-        for dif in different_configs:
-            local_dataframe[dif] = configs_jsons[t][dif]
-        total_runs = 0
-        total_cost = 0
-        total_time_penalty_cost = 0
-        total_fuel_cost = 0
-        for i in simulations_jsons[t]:
-            if i.startswith('----- Simulation'):
-                total_cost += simulations_jsons[t][f'{int(numbers[t])*100+total_runs}_FINAL COST']
-                total_time_penalty_cost += simulations_jsons[t][f'{int(numbers[t])*100+total_runs}_TIME PENALTY COSTS']
-                total_fuel_cost += simulations_jsons[t][f'{int(numbers[t])*100+total_runs}_FUEL COSTS']
-                total_runs += 1
-        local_dataframe['Average_Cost'] = total_cost / total_runs
-        local_dataframe['Total_Time_Penalty_Cost'] = total_time_penalty_cost / total_runs
-        local_dataframe['Total_Fuel_Cost'] = total_fuel_cost / total_runs
-        dataframe = dataframe.append(local_dataframe, ignore_index=True)
-    print('SIMULATION RESULT: ',  total_cost / total_runs)
-    dataframe.to_csv(path + '/results.csv', index=False)

@@ -1,7 +1,7 @@
 from common.properties import BIG_S, CUM_TRAVEL_TIME, DYN_VEL_FUEL_CONSUM_CONST, DIST_MAT, EXP_ARRIV_TIME_RNG, \
     EXPECTED_BUNKERING_COSTS, EXP_TRAVEL_TIME, REGULAR_SPEED, REL_TIME_DIFFS, ROUTE_SCHEDULE, SMALL_S, \
     STOCH_BUNKERING_COSTS, STOCH_PROBS, FILENAME_SP, FILENAME_DM, FILENAME_LP, k_coefficients, get_terminal_state, \
-    dist_matrix, save_config,  PRICE_SCENARIOS, PRICE_PERCENTAGES
+    dist_matrix, save_config,  PRICE_SCENARIOS, PRICE_PERCENTAGES, FUEL_CAPACITY, FIXED_BUNKERING_COSTS
 from datetime import datetime
 
 BIG_NUMBER = 9e99
@@ -16,8 +16,6 @@ DPW_EXPLORATION = 0.9
 EARLY_ARRIVAL_PENALTY = 0
 EARLY_STOP = False
 EPSILON = 0.001
-FIXED_BUNKERING_COSTS = [7000, 5000, 1000, 3500]
-FUEL_CAPACITY = 50
 FUEL_SAFETY_FACTOR = 1
 HEURISTIC = False
 INITIAL_SPEED = 1
@@ -86,7 +84,10 @@ def parser(now, path,simulation_name=None):
     for t in range(total_simulations):
         local_dataframe = pd.DataFrame({'Simulation number': numbers[t]}, index=[0])
         for dif in different_configs:
-            local_dataframe[dif] = configs_jsons[t][dif]
+            if dif =='run_time':
+                local_dataframe[dif] = int(configs_jsons[t][dif])
+            else:
+                local_dataframe[dif] = configs_jsons[t][dif]
         total_runs = 0
         total_cost = 0
         total_time_penalty_cost = 0
