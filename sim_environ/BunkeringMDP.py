@@ -139,7 +139,8 @@ class BunkeringMDP(MDP[BunkeringState, BunkeringAction]):
     #     return actions
 
     def actions(self, state: BunkeringState, number_of_visits: int, iteration_number: int = None,
-                max_iteration_number: int = None, dpw_exploration: dict = None, dpw_alpha: dict = None) -> list[
+                max_iteration_number: int = None, dpw_exploration: dict = None, dpw_alpha: dict = None,
+                min_action=False) -> list[
         TAction]:
         if os.environ['FORCE_0_FUEL'] == 'True':
             if state.port == ROUTE_SCHEDULE[-3]:  ## END UP WITH ZERO FUEL
@@ -158,6 +159,12 @@ class BunkeringMDP(MDP[BunkeringState, BunkeringAction]):
             return actions
         # possible_actions = self.get_possible_actions(state.fuel_amount, number_of_visits, iteration_number,
         #                                              max_iteration_number)
+        if min_action and os.environ['ALGORITHM'] != 'NAIVE':
+            possible_actions = self.get_all_actions(state.fuel_amount, number_of_visits, iteration_number,
+                                                    max_iteration_number)
+
+            return [BunkeringAction(1,min(a[1] for a in possible_actions), self.route_schedule[state.port])]
+
 
         if os.getenv('ALGORITHM') =='NAIVE':
             possible_actions = self.get_all_actions(state.fuel_amount, number_of_visits, iteration_number,
@@ -169,6 +176,9 @@ class BunkeringMDP(MDP[BunkeringState, BunkeringAction]):
                                      self.route_schedule, self.fuel_capacity, self.k1, self.k2):
                 actions.append(BunkeringAction(a[0], a[1], self.route_schedule[state.port]))
         return actions
+
+    def get_min_action(self, act):
+        return act[1]
 
     # PROGRESSIVE WIDENING ALGORITHM #
 
