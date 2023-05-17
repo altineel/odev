@@ -31,6 +31,8 @@ DIST_MAT = np.array([[0, 30, 7, 15, 100, 100, 100],#, 100, 100, 100, 100, 100, 1
                      [13, 8, 30, 20, 100, 0, 75],
                      [20, 8, 30, 20, 100, 0, 100]])
 
+FUEL_CAPACITY = 150
+FIXED_BUNKERING_COSTS = [7000, 5000, 1000, 3500, 2000, 1500, 1000, 7000, 4500, 8000, 1500]
 BIG_S = np.max(DIST_MAT) * DYN_VEL_FUEL_CONSUM_CONST * 6
 SMALL_S = BIG_S * 0.95
 EXP_TRAVEL_TIME = np.array(

@@ -71,7 +71,7 @@ def stochastic_solutions():
 def statefulsolver(name, simulation_name, **kwargs):
     start_time = time.time()
     simulations = {}
-    nbsimulations = 10
+    nbsimulations = 25
     for i in tqdm(range(nbsimulations), desc='Run', position=0):
         mariSimLP = MaritimeSim(dist_mat=DIST_MAT,
                                 fuel_price_func_callback=fuel_price_func,
@@ -119,41 +119,45 @@ if __name__ == '__main__':
     random.seed(time.time())
     run_id = random.randint(0, 100000)
     i = run_id * 100
-    simulation_name = '4portNaivePW'
-    for sim_depth_limit in [7]:
-        for decreasing_iter in [True]:
-            for early_stop in [True, False]:
-                for exp_const in [1000, 10000, 30000, 150000]:  # , 12000, 15000, 20000]:
-                    for max_iter in [100, 500, 1000, 2000, 3000,6000]:
-                        for expl_const_decay in [0.9998, 0.9992]:  # , 0.9993, 0.9991]:
-                            for alg in ['ProgressiveWideningSolver', 'NAIVE']:
-                                for force in [True, False]:
-                                    for opt_act in ['MIN_REWARD']:
-                                        if early_stop == True:
-                                            os.environ['EARLY_STOP'] = str(early_stop)
-                                        os.environ['FORCE_0_FUEL'] = str(force)
-                                        os.environ['ALGORITHM'] = alg
-                                        os.environ['SIMULATION_DEPTH_LIMIT'] = str(sim_depth_limit)
-                                        os.environ['EXPLORATION_CONSTANT'] = str(exp_const)
-                                        os.environ['MAX_ITERATION'] = str(max_iter)
+    simulation_name = '10portAlgComparison'
+    for sim_depth_limit in [10]:
+        for decreasing_iter in [False]:
+            for early_stop in [False]:
+                for exp_const in [500000, 800000]:  # , 12000, 15000, 20000]:
+                    for max_iter in [300,500]:
+                        for expl_const_decay in [0.9998]:  # , 0.9993, 0.9991]:
+                            for alg in ['DPWSolver', 'ProgressiveWideningSolver']:
+                                for opt_act in ['MIN_REWARD']:
+                                    if early_stop == True:
                                         os.environ['EARLY_STOP'] = str(early_stop)
-                                        os.environ['DECREASING_ITER'] = str(decreasing_iter)
-                                        os.environ['OPTIMAL_ACTION_POLICY'] = str(opt_act)
-                                        os.environ['EXP_CONST_DECAY']  = str(expl_const_decay)
-                                        if alg == 'NAIVE':
-                                            i += 1
-                                            os.environ['DPW_EXPLORATION'] = str(0)
-                                            os.environ['DPW_ALPHA'] = str(0)
-                                            statefulsolver(i, simulation_name=simulation_name,
-                                                           **os.environ)
-                                        else:
-                                            for dpw_enum, dpw_alpha_refuel in enumerate(
-                                                    [0.3]):  # , 0.8, 0.9, 0.95]:
-                                                for dpw_enum2, dpw_exploration_refuel in enumerate(
-                                                        [3]):  # , 0.8, 0.9, 0.95]:
+                                    if max_iter ==6000:
+                                        decreasing_iter = True
+                                    print(i - run_id * 100)
+                                    os.environ['ALGORITHM'] = alg
+                                    os.environ['SIMULATION_DEPTH_LIMIT'] = str(sim_depth_limit)
+                                    os.environ['EXPLORATION_CONSTANT'] = str(exp_const)
+                                    os.environ['MAX_ITERATION'] = str(max_iter)
+                                    os.environ['EARLY_STOP'] = str(early_stop)
+                                    os.environ['DECREASING_ITER'] = str(decreasing_iter)
+                                    os.environ['OPTIMAL_ACTION_POLICY'] = str(opt_act)
+                                    os.environ['EXP_CONST_DECAY'] = str(expl_const_decay)
+                                    if alg == 'NAIVE':
+                                        i += 1
+                                        os.environ['FORCE_0_FUEL'] = str(False)
+                                        os.environ['DPW_EXPLORATION'] = str(0)
+                                        os.environ['DPW_ALPHA'] = str(0)
+                                        statefulsolver(i, simulation_name=simulation_name,
+                                                       **os.environ)
+                                    else:
+                                        for dpw_enum, dpw_alpha_refuel in enumerate(
+                                                [0.4]):  # , 0.8, 0.9, 0.95]:
+                                            for dpw_enum2, dpw_exploration_refuel in enumerate(
+                                                    [4]):  # , 0.8, 0.9, 0.95]:
+                                                for force in [False, True]:
                                                     i += 1
+                                                    os.environ['FORCE_0_FUEL'] = str(force)
                                                     os.environ['DPW_EXPLORATION'] = str(
                                                         dpw_exploration_refuel)
                                                     os.environ['DPW_ALPHA'] = str(dpw_alpha_refuel)
-                                                statefulsolver(i, simulation_name=simulation_name, **os.environ)
-                                        parser(now=NOW, path=PATH, simulation_name=simulation_name)
+                                                    statefulsolver(i, simulation_name=simulation_name, **os.environ)
+    parser(now=NOW, path=PATH, simulation_name=simulation_name)

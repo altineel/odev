@@ -39,7 +39,7 @@ SMALL_S = SMALL_S
 USE_SPEED = False
 SPEED_POWER_COEF = 1.0
 TEU = 7000
-MIN_SET_SIZE_REFUEL = 5#round(FUEL_CAPACITY/100)
+MIN_SET_SIZE_REFUEL = 10#round(FUEL_CAPACITY/100)
 MIN_SET_SIZE_SPEED = 5
 MIN_SET_SIZE = MIN_SET_SIZE_SPEED * MIN_SET_SIZE_REFUEL
 USE_TEU = False
@@ -85,7 +85,8 @@ def parser(now, path,simulation_name=None):
         local_dataframe = pd.DataFrame({'Simulation number': numbers[t]}, index=[0])
         for dif in different_configs:
             if dif =='run_time':
-                local_dataframe[dif] = int(configs_jsons[t][dif])
+                value = int(configs_jsons[t][dif])
+                local_dataframe[dif] = value
             else:
                 local_dataframe[dif] = configs_jsons[t][dif]
         total_runs = 0

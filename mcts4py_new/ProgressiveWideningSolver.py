@@ -18,7 +18,6 @@ class ProgressiveWideningSolver(StatefulSolver):
                  early_stop: bool = False,
                  early_stop_condition: dict = None,
                  exploration_constant_decay: float = 1.0,
-
                  dpw_exploration: float = None,
                  dpw_alpha: float = None
                  ):
@@ -84,7 +83,8 @@ class ProgressiveWideningSolver(StatefulSolver):
         current_state = node.state
         discount = self.discount_factor ** depth
         valid_actions = self.mdp.actions(current_state, node.n, iteration_number=iteration_number,
-                                         max_iteration_number=self.max_iteration, dpw_alpha=self.dpw_alpha, dpw_exploration=self.dpw_exploration)
+                                         max_iteration_number=self.max_iteration, dpw_alpha=self.dpw_alpha, dpw_exploration=self.dpw_exploration,
+                                         min_action=True)
         random_action = random.choice(valid_actions)
         new_state = self.mdp.transition(current_state, random_action)
 

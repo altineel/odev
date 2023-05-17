@@ -76,6 +76,10 @@ class DPWSolver(MCTSSolver[TAction, NewNode[TRandom, TAction], TRandom], Generic
             # self.time2 += (time.time() - start_time) * 10000
             try:
                 current_node = max(current_node.children, key=lambda c: self.calculate_uct(c))
+                if current_node.n%100 ==99:
+                    current_node.valid_actions = self.mdp.actions(current_node.state, t,
+                                                                  dpw_exploration=self.dpw_exp,
+                                                                  dpw_alpha=self.dpw_alpha)
             except ValueError:
                 if self.mdp.is_terminal(current_node.state):
                     return current_node
@@ -151,14 +155,14 @@ class DPWSolver(MCTSSolver[TAction, NewNode[TRandom, TAction], TRandom], Generic
         current_state = node.state
         discount = self.discount_factor ** depth
         start_time = time.time()
-        valid_actions = self.mdp.actions(current_state, node.n, dpw_exploration=self.dpw_exp, dpw_alpha=self.dpw_alpha)
-        try:
-            random_action = random.choice(valid_actions)
-        except IndexError:
-            valid_actions = self.mdp.actions(current_state, 1, dpw_exploration=10,
-                                             dpw_alpha=1)
+        valid_actions = self.mdp.actions(current_state, node.n, dpw_exploration=self.dpw_exp, dpw_alpha=self.dpw_alpha, min_action=True)
+        # try:
+        random_action = random.choice(valid_actions)
+        # except IndexError:
+        #     valid_actions = self.mdp.actions(current_state, 1, dpw_exploration=10,
+        #                                      dpw_alpha=1)
 
-            random_action = random.choice(valid_actions)
+            #random_action = random.choice(valid_actions)
         new_state = self.mdp.transition(current_state, random_action)
         self.time3 += (time.time() - start_time) * 100000
 
@@ -196,6 +200,8 @@ class DPWSolver(MCTSSolver[TAction, NewNode[TRandom, TAction], TRandom], Generic
     # Utilities
     def run_search_iteration(self, iteration_number=None):
         # Selection
+        if iteration_number in [5000, 9999]:
+            a=0
         root_node = self.root()
         start_time = time.time()
         best = self.select(root_node)
